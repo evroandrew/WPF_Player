@@ -1,0 +1,130 @@
+﻿<Window x:Class="WpfVideoPlayer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfVideoPlayer"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800"
+        Loaded="Window_Loaded">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition Width="auto"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <GridSplitter 
+            Grid.Column="1" 
+            Width="4" 
+            HorizontalAlignment="Center"
+            VerticalAlignment="Stretch" 
+            Grid.RowSpan="2"
+            Margin="0"
+            ShowsPreview="False"/>
+
+        <GridSplitter 
+            Grid.Row="1"
+            VerticalAlignment="Center"
+            Height="5" Grid.ColumnSpan="3" 
+            HorizontalAlignment="Stretch"
+            ShowsPreview="False"/>
+        <MediaElement 
+            Name="_media"
+            MediaEnded="_media_MediaEnded"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            MinHeight="200"
+            Height="300" 
+            MinWidth="300" 
+            Width="600"
+            LoadedBehavior="Manual"/>
+        <ProgressBar 
+            MouseMove="_mediaProgress_MouseMove" 
+            MouseLeave="_mediaProgress_MouseLeave" 
+            MouseEnter="_mediaProgress_GotMouseCapture"
+            MouseDown="_mediaProgress_MouseDown" 
+            Value="{Binding Source=_media, 
+            Path=Position.TotalSeconds}" 
+            Name="_mediaProgress" 
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Height="26" 
+            Margin="32,11,0,-34" 
+            Grid.Row="2" 
+            Width="559"/>
+        <Button 
+            Click="BtnPlay_Click" 
+            Content="Play" 
+            HorizontalAlignment="Left" 
+            Margin="269,57,0,-69" 
+            Grid.Row="2" 
+            VerticalAlignment="Top" 
+            Width="75" 
+            Height="38"/>
+        <Button 
+            Click="BtnPause_Click" 
+            Content="Pause" 
+            HorizontalAlignment="Left" 
+            Margin="349,57,0,-46" 
+            Grid.Row="2" 
+            VerticalAlignment="Top" 
+            Width="75" 
+            Height="38"/>
+        <Button 
+            Click="BtnStop_Click" 
+            Content="Stop"
+            HorizontalAlignment="Left" 
+            Margin="429,57,0,-36" 
+            Grid.Row="2"
+            Width="75" 
+            Height="38" 
+            VerticalAlignment="Top"/>
+        <Expander 
+            Grid.Column="2" 
+            Name="Exp"
+            Header="Expander"
+            HorizontalAlignment="Left"
+            Expanded="Exp_Expanded"
+            Height="auto" 
+            Margin="11,26,-110,0" 
+            VerticalAlignment="Top" 
+            Width="100">
+            <Grid
+                Background="#FFE5E5E5"/>
+        </Expander>
+        <Label 
+            Name="pop_time" 
+            Content="" 
+            HorizontalAlignment="Left" 
+            Margin="167,70,0,-9" 
+            Grid.Row="2" 
+            VerticalAlignment="Top"/>
+        <Slider
+            Name="trackVolume" 
+            ValueChanged="trackVolume_ValueChanged"  
+            HorizontalAlignment="Left" 
+            Margin="32,57,0,22" 
+            Grid.Row="2" 
+            Width="87" 
+            Value="0.5" 
+            Minimum="0" 
+            Maximum="1"/>
+        <Button 
+            Content="Add To List" 
+            Click="Button_Click"
+            Grid.Column="2" 
+            HorizontalAlignment="Left" 
+            Margin="12,11,-84,0" 
+            Grid.Row="2" 
+            VerticalAlignment="Top" 
+            Width="75"/>
+    </Grid>
+</Window>

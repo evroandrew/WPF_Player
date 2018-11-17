@@ -28,26 +28,15 @@ namespace WpfVideoPlayer
             InitializeComponent();
         }
 
+        #region Fields
+
         int Pointer = 0;
         bool flag = true;
         List<string> queue = new List<string>();
 
-        private void Window_Loaded(object sender, RoutedEventArgs ea)
-        {
-            OpenFileDialog dlg = GetFiles();
+        #endregion
 
-            bool? res = dlg.ShowDialog();
-            foreach (var names in dlg.FileNames)
-            {
-                queue.Add(names);
-            }
-            if (res.HasValue && res.Value)
-            {
-                _media.MediaOpened += _media_MediaOpened;
-                _media.Clock = new MediaTimeline(new Uri(dlg.FileName, UriKind.Absolute)).CreateClock();
-                _media.Clock.CurrentTimeInvalidated += Clock_CurrentTimeInvalidated;
-            }
-        }
+        #region Init
 
         private OpenFileDialog GetFiles()
         {
@@ -60,18 +49,60 @@ namespace WpfVideoPlayer
             return dlg;
         }
 
-        private void Clock_CurrentTimeInvalidated(object sender, EventArgs e)
+        private void Window_Loaded(object sender, RoutedEventArgs ea)
         {
-            _mediaProgress.Value = _media.Position.TotalSeconds;
+            OpenFileDialog dlg = GetFiles();
+            bool? res = dlg.ShowDialog();
+            foreach (var names in dlg.FileNames)
+                queue.Add(names);
+            if (res.HasValue && res.Value)
+            {
+                _media.MediaOpened += _media_MediaOpened;
+                _media.Clock = new MediaTimeline(new Uri(dlg.FileName, UriKind.Absolute)).CreateClock();
+                _media.Clock.CurrentTimeInvalidated += Clock_CurrentTimeInvalidated;
+                _media.Clock.Completed += SomeEventComleted;
+            }
+        }
 
-            if (flag)
-                pop_time.Content = $"{_media.Position.Hours}:{_media.Position.Minutes}:{_media.Position.Seconds}";
+        private void SomeEventComleted(object sender, EventArgs e)
+        {
+            NewFilm();
         }
 
         private void _media_MediaOpened(object sender, RoutedEventArgs e)
         {
             _mediaProgress.Maximum = _media.NaturalDuration.TimeSpan.TotalSeconds;
         }
+
+        #endregion
+
+        #region Clock
+
+        private void Clock_CurrentTimeInvalidated(object sender, EventArgs e)
+        {
+            _mediaProgress.Value = _media.Position.TotalSeconds;
+            if (flag)
+                pop_time.Content = $"{_media.Position.Hours}:{_media.Position.Minutes}:{_media.Position.Seconds}";
+        }
+
+        private TimeSpan timePos(MouseEventArgs e)
+        {
+            double x = e.GetPosition(_mediaProgress).X;
+            double pos = x * 100 / _mediaProgress.ActualWidth;
+            try
+            {
+                TimeSpan ts = TimeSpan.FromSeconds(_media.Clock.NaturalDuration.TimeSpan.TotalSeconds / 100.0 * pos);
+                return ts;
+            }
+            catch
+            {
+                return new TimeSpan();
+            }
+        }
+
+        #endregion
+
+        #region PlayStopPauseVolume
 
         private void BtnPlay_Click(object sender, RoutedEventArgs e)
         {
@@ -98,10 +129,18 @@ namespace WpfVideoPlayer
             _media.Clock.Controller.Stop();
         }
 
+        private void trackVolume_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            _media.Volume = (double)trackVolume.Value;
+        }
+
+        #endregion
+
+        #region ProgressBar
+
         private void _mediaProgress_MouseDown(object sender, MouseButtonEventArgs e)
         {
             TimeSpan ts = timePos(e);
-
             _media.Clock.Controller.Seek(ts, TimeSeekOrigin.BeginTime);
         }
 
@@ -111,29 +150,11 @@ namespace WpfVideoPlayer
             _mediaProgress_MouseMove(sender, e);
         }
 
-        private TimeSpan timePos(MouseEventArgs e)
-        {
-            double x = e.GetPosition(_mediaProgress).X;
-            double pos = x * 100 / _mediaProgress.ActualWidth;
-            try
-            {
-                TimeSpan ts = TimeSpan.FromSeconds(_media.Clock.NaturalDuration.TimeSpan.TotalSeconds / 100.0 * pos);
-                return ts;
-            }
-            catch
-            {
-                return new TimeSpan();
-            }
-        }
+        #endregion
 
         private void _mediaProgress_MouseLeave(object sender, MouseEventArgs e)
         {
             flag = true;
-        }
-
-        private void trackVolume_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            _media.Volume = (double)trackVolume.Value;
         }
 
         private void _mediaProgress_MouseMove(object sender, MouseEventArgs e)
@@ -147,27 +168,42 @@ namespace WpfVideoPlayer
             catch { }
         }
 
-        private void NewFilm()
+        #region NFilms
+
+        private void NewFilm(int index = -1)
         {
-            Pointer++;
+            Pointer = index == -1 ? Pointer + 1 : index;
+            NextFilm();
+        }
+
+        private void NextFilm()
+        {
             if (Pointer < queue.Count)
             {
                 _media.MediaOpened += _media_MediaOpened;
                 _media.Clock = new MediaTimeline(new Uri(queue[Pointer], UriKind.Absolute)).CreateClock();
                 _media.Clock.CurrentTimeInvalidated += Clock_CurrentTimeInvalidated;
+            }
+            else
+            {
+                Pointer--;
+                Button_Click(null, null);
+                NewFilm();
             }
         }
 
-        private void NewFilm(int index)
+        private void _media_MediaEnded(object sender, RoutedEventArgs e)
         {
-            Pointer = index;
-            if (Pointer < queue.Count)
-            {
-                _media.MediaOpened += _media_MediaOpened;
-                _media.Clock = new MediaTimeline(new Uri(queue[Pointer], UriKind.Absolute)).CreateClock();
-                _media.Clock.CurrentTimeInvalidated += Clock_CurrentTimeInvalidated;
-            }
+            NewFilm();
         }
+
+        private void button_Click(object sender, EventArgs e)
+        {
+            int index = Int32.Parse((sender as Button).Tag.ToString());
+            NewFilm(index);
+        }
+
+        #endregion
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
@@ -179,11 +215,6 @@ namespace WpfVideoPlayer
             }
             if (Exp.IsExpanded)
                 Exp_Expanded(sender, e);
-        }
-
-        private void _media_MediaEnded(object sender, RoutedEventArgs e)
-        {
-            NewFilm();
         }
 
         private void Exp_Expanded(object sender, RoutedEventArgs e)
@@ -199,12 +230,6 @@ namespace WpfVideoPlayer
                 i++;
             }
             Exp.Content = panel;
-        }
-
-        private void button_Click(object sender, EventArgs e)
-        {
-            int index = Int32.Parse((sender as Button).Tag.ToString());
-            NewFilm(index);
         }
     }
 }

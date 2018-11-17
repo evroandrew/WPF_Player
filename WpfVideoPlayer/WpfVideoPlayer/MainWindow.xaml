@@ -29,7 +29,6 @@
             Grid.RowSpan="2"
             Margin="0"
             ShowsPreview="False"/>
-
         <GridSplitter 
             Grid.Row="1"
             VerticalAlignment="Center"
@@ -38,7 +37,6 @@
             ShowsPreview="False"/>
         <MediaElement 
             Name="_media"
-            MediaEnded="_media_MediaEnded"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch"
             MinHeight="200"
